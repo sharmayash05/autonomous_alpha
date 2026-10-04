@@ -1,0 +1,95 @@
+# Docker Compose for The Autonomous Alpha
+# Production deployment configuration (VPS Optimized)
+
+version: '3.8'
+
+services:
+  # Main trading agent
+  trading-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autonomous-alpha
+    restart: unless-stopped
+    environment:
+      - LLM_BASE_URL=http://localhost:3000/gemini-antigravity/v1
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=gemini-3.0-pro-preview
+      - OLLAMA_HOST= # Disabled
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_API_SECRET=${BINANCE_API_SECRET}
+      - TRADING_MODE=${TRADING_MODE:-paper}
+      - LOG_LEVEL=INFO
+    ports:
+      - "5000:5000" # Dashboard
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - qdrant_data:/app/qdrant_data
+    depends_on:
+      - qdrant
+    networks:
+      - trading-network
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-db
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - trading-network
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - trading-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - trading-network
+    depends_on:
+      - prometheus
+
+networks:
+  trading-network:
+    driver: bridge
+
+volumes:
+  qdrant_data:
+  prometheus_data:
+  grafana_data:

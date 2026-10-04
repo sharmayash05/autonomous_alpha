@@ -1,0 +1,89 @@
+# Risk Management Parameters
+# The Autonomous Alpha - Capital Protection Rules
+
+# These are the HARD RULES that the Risk Guardian enforces
+# Violation of any hard rule results in automatic veto
+
+hard_rules:
+  # Portfolio-level limits
+  max_portfolio_drawdown_pct: 10.0    # Max 10% drawdown from peak
+  max_daily_loss_pct: 5.0             # Max 5% loss in a single day
+  max_total_exposure_pct: 100.0       # Max 100% of capital at risk
+  
+  # Position-level limits
+  max_single_position_pct: 5.0        # Max 5% of capital per position
+  max_positions: 6                     # Max 6 concurrent positions
+  max_correlated_positions: 3          # Max 3 positions in correlated assets
+  
+  # Leverage limits
+  max_single_leverage: 20             # Max 20x on any single position
+  max_aggregate_leverage: 10          # Max 10x total portfolio leverage
+  
+  # Time-based restrictions
+  no_trade_before_news_minutes: 15    # Don't open positions 15min before high-impact news
+  no_trade_after_news_minutes: 5      # Don't open positions 5min after high-impact news
+  
+  # Performance thresholds
+  min_expected_sharpe: 1.5            # Minimum expected Sharpe ratio for trade
+  min_win_rate_pct: 40.0              # Minimum expected win rate
+  min_risk_reward_ratio: 1.5          # Minimum R:R ratio
+
+soft_rules:
+  # These are guidelines the Risk Guardian considers with LLM reasoning
+  # Can be overridden with strong justification
+  
+  volatility_adjustment:
+    enabled: true
+    atr_multiplier_threshold: 2.0     # If ATR > 2x average, reduce position size
+    size_reduction_pct: 50.0          # Reduce by 50% in high volatility
+    
+  correlation_check:
+    enabled: true
+    max_correlation: 0.7              # Assets with correlation > 0.7 are "correlated"
+    
+  liquidation_proximity:
+    enabled: true
+    min_liq_distance_pct: 5.0         # Block if any position within 5% of liquidation
+    
+  funding_rate_check:
+    enabled: true
+    extreme_funding_threshold: 0.1    # Funding rate > 0.1% is extreme
+    
+  open_interest_alert:
+    enabled: true
+    oi_spike_threshold_pct: 20.0      # Alert if OI changes > 20% in 24h
+
+# Position sizing (Kelly Criterion based)
+position_sizing:
+  method: "fractional_kelly"
+  kelly_fraction: 0.25                # Use 1/4 Kelly for safety
+  min_position_usd: 50.0              # Minimum position size
+  max_position_usd: 10000.0           # Maximum position size
+  
+# Stop loss configuration
+stop_loss:
+  default_type: "atr_based"
+  atr_multiplier: 2.0                 # 2x ATR for stop loss
+  max_stop_loss_pct: 5.0              # Never more than 5% stop loss
+  trailing_enabled: true
+  trailing_trigger_pct: 2.0           # Enable trailing after 2% profit
+  trailing_distance_pct: 1.5          # Trail at 1.5% distance
+
+# Take profit configuration
+take_profit:
+  default_type: "risk_reward"
+  risk_reward_ratio: 2.0              # Default 2:1 R:R
+  partial_take_enabled: true
+  partial_levels:
+    - profit_pct: 1.5
+      close_pct: 30.0                 # Close 30% at 1.5x profit
+    - profit_pct: 2.5
+      close_pct: 40.0                 # Close 40% at 2.5x profit
+    # Remaining 30% runs with trailing stop
+
+# Circuit breakers
+circuit_breakers:
+  consecutive_losses: 3               # Pause after 3 consecutive losses
+  pause_duration_hours: 4             # Pause for 4 hours
+  daily_loss_breaker_pct: 3.0         # Pause if down 3% today
+  system_error_threshold: 3           # Pause after 3 system errors

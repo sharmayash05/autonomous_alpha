@@ -1,0 +1,9 @@
+Rating rubric (automated heuristic):
+0 = blank/structural line (not quality-rated)
+1 = risky/problematic pattern (e.g., eval/exec)
+2 = needs improvement or placeholder (e.g., TODO, bare except, stub)
+3 = acceptable but could be safer/clearer (e.g., print, assert, long line)
+4 = good/clear/idiomatic default
+5 = especially clear/safe (typed signature heuristic)
+
+Tags are heuristic indicators, not definitive judgments.

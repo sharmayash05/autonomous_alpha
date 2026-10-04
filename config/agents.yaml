@@ -1,0 +1,57 @@
+# Agent Configuration
+# The Autonomous Alpha - Multi-Agent Council
+# Configured for UNLIMITED tokens with gemini-3-pro-preview
+
+council:
+  # Debate configuration
+  max_debate_rounds: 10
+  min_consensus_threshold: 0.6
+  debate_timeout_seconds: 120
+
+agents:
+  bull_researcher:
+    model: "gemini-3.0-pro-preview"
+    temperature: 0.7
+    max_tokens: 16384
+    role: "fundamental_bullish"
+    description: "Optimistic fundamental analyst - finds reasons for appreciation"
+    
+  bear_researcher:
+    model: "gemini-3.0-pro-preview"
+    temperature: 0.7
+    max_tokens: 16384
+    role: "fundamental_bearish"
+    description: "Skeptical fundamental analyst - finds reasons for depreciation"
+    
+  technical_analyst:
+    model: "gemini-3.0-pro-preview"
+    temperature: 0.3
+    max_tokens: 16384
+    role: "technical"
+    description: "Pure price/volume analyst - ignores fundamentals"
+    
+  sentiment_analyst:
+    model: "gemini-3.0-pro-preview"
+    temperature: 0.5
+    max_tokens: 16384
+    role: "sentiment"
+    description: "Social sentiment monitor - Twitter, Reddit, Telegram"
+    
+  risk_guardian:
+    model: "gemini-3.0-pro-preview"
+    temperature: 0.1  # Very deterministic for risk
+    max_tokens: 16384
+    role: "risk_management"
+    description: "Capital protector with absolute veto power"
+    
+  portfolio_manager:
+    model: "gemini-3.0-pro-preview"
+    temperature: 0.4
+    max_tokens: 32768
+    role: "synthesis"
+    description: "Final decision maker - synthesizes all agent inputs"
+
+# Model endpoints
+endpoints:
+  llm_api: "http://localhost:3000/gemini-antigravity/v1"
+  api_key: "your_llm_api_key"
